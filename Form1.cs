@@ -31,6 +31,7 @@ namespace _15_Puzzle
                 for (int j = 0; j < 4; j++)
                     locations[i * 4 + j] = new Point(100 * j,100 * i);
 
+            panel1.Controls.Clear();
             for (int i = 0; i < 15; i++)
             {
                 Button cell = new Button();
@@ -50,21 +51,29 @@ namespace _15_Puzzle
             List<Control> list_c = panel1.Controls.Cast<Control>().OrderBy(el => el.TabIndex).ToList();
             Random rnd = new Random();
             for (int i = 0; i < list_c.Count(); i++)
-                swap(list_c[rnd.Next(1, list_c.Count())], list_c[rnd.Next(1, list_c.Count())]);
-
-            //update grid
-            foreach(Control c in list_c)
             {
-                int[] button_index = grid.LocationToIndex(c.Location);
-                
-                if (int.Parse(c.Text) - 1 == (button_index[0] * 4 + button_index[1]))
-                    grid.wrongCells++;
-            }
+                int i1 = rnd.Next(1, list_c.Count());
+                int i2 = rnd.Next(1, list_c.Count());
+                //swap thier position
+                swap(list_c[i1], list_c[i2]);
 
+                //swap in the list
+                Control temp = list_c[i1];
+                list_c[i1] = list_c[i2];
+                list_c[i2] = temp;
+            }
 
             //if it is not solvable, spaw first 2
             if (!Solvable(list_c))
                 swap(list_c[0], list_c[1]);
+
+            //update grid
+            foreach (Control c in list_c)
+            {
+                int[] button_index = grid.LocationToIndex(c.Location);
+                if (int.Parse(c.Text) - 1 != (button_index[0] * 4 + button_index[1]))
+                    grid.wrongCells++;
+            }
         }
 
         private void swap(Control btn1, Control btn2)
@@ -88,7 +97,7 @@ namespace _15_Puzzle
         private void Cell_Click(object sender, EventArgs e)
         {
             if (freezeGame)
-                return;
+                start_btn.PerformClick();
 
             Button button = (Button)sender;
             int[] button_index = grid.LocationToIndex(button.Location);
@@ -112,10 +121,10 @@ namespace _15_Puzzle
                 {
                     grid.isEmpty[curr_index[0], curr_index[1]] = false;
                     if (int.Parse(button.Text) - 1 == (button_index[0] * 4 + button_index[1]))
-                        grid.wrongCells --;
+                        grid.wrongCells++;
                     grid.isEmpty[button_index[0], button_index[1]] = true;
                     if (int.Parse(button.Text) - 1 == (curr_index[0] * 4 + curr_index[1]))
-                        grid.wrongCells++;
+                        grid.wrongCells--;
 
                     int distance = 20;
                     while (distance-- > 0)
@@ -188,6 +197,16 @@ namespace _15_Puzzle
         private void AI_btn_Click(object sender, EventArgs e)
         {
  
+        }
+
+        private void restart_btn_Click(object sender, EventArgs e)
+        {
+            time_lbl.Text = "00:00:00";
+            timer1.Stop();
+            if (!freezeGame)
+                start_btn.PerformClick();
+
+            InitGame();
         }
     }
 }
