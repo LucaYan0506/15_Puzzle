@@ -14,6 +14,7 @@ namespace _15_Puzzle
     {
         //global variable
         Grid grid;
+        bool freezeGame = true;
 
         public Form1()
         {
@@ -47,21 +48,48 @@ namespace _15_Puzzle
 
             //Shuffle the puzzle
             List<Control> list_c = panel1.Controls.Cast<Control>().OrderBy(el => el.TabIndex).ToList();
+            Random rnd = new Random();
             for (int i = 0; i < list_c.Count(); i++)
+                swap(list_c[rnd.Next(1, list_c.Count())], list_c[rnd.Next(1, list_c.Count())]);
+
+            //update grid
+            foreach(Control c in list_c)
             {
-                Console.WriteLine(list_c[i].Name);
+                int[] button_index = grid.LocationToIndex(c.Location);
+                
+                if (int.Parse(c.Text) - 1 == (button_index[0] * 4 + button_index[1]))
+                    grid.wrongCells++;
             }
-            
+
+
+            //if it is not solvable, spaw first 2
+            if (!Solvable(list_c))
+                swap(list_c[0], list_c[1]);
         }
 
-
-        private bool Solvable()
+        private void swap(Control btn1, Control btn2)
         {
-            return true;   
+            Point temp = btn1.Location;
+            btn1.Location = btn2.Location;
+            btn2.Location = temp;
+        }
+
+        private bool Solvable(List<Control> list_c)
+        {
+            int n = 0;
+            for (int i = 0; i < list_c.Count; i++)
+                for (int j = i + 1; j < list_c.Count; j++)
+                    if (int.Parse(list_c[j].Text) < int.Parse(list_c[i].Text))
+                        n++;
+
+            return n % 2 == 0;   
         }
 
         private void Cell_Click(object sender, EventArgs e)
         {
+            if (freezeGame)
+                return;
+
             Button button = (Button)sender;
             int[] button_index = grid.LocationToIndex(button.Location);
 
@@ -97,7 +125,10 @@ namespace _15_Puzzle
                     }
 
                     if (grid.Win())
+                    {
                         MessageBox.Show("Win");
+                        start_btn.PerformClick();
+                    }
 
                 }
             }
@@ -113,11 +144,13 @@ namespace _15_Puzzle
             {
                 timer1.Start();
                 start_btn.Text = "Stop";
+                freezeGame = false;
             }
             else
             {
                 timer1.Stop();
                 start_btn.Text = "Start";
+                freezeGame = true;
             }
         }
 
@@ -152,5 +185,9 @@ namespace _15_Puzzle
             return n.ToString();
         }
 
+        private void AI_btn_Click(object sender, EventArgs e)
+        {
+ 
+        }
     }
 }

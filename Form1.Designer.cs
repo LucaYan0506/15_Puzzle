@@ -114,7 +114,7 @@ namespace _15_Puzzle
             // restart_btn
             // 
             this.restart_btn.Font = new System.Drawing.Font("Times New Roman", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.restart_btn.Location = new System.Drawing.Point(538, 377);
+            this.restart_btn.Location = new System.Drawing.Point(538, 375);
             this.restart_btn.Name = "restart_btn";
             this.restart_btn.Size = new System.Drawing.Size(149, 53);
             this.restart_btn.TabIndex = 3;
@@ -124,18 +124,19 @@ namespace _15_Puzzle
             // AI_btn
             // 
             this.AI_btn.Font = new System.Drawing.Font("Times New Roman", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AI_btn.Location = new System.Drawing.Point(538, 436);
+            this.AI_btn.Location = new System.Drawing.Point(538, 434);
             this.AI_btn.Name = "AI_btn";
             this.AI_btn.Size = new System.Drawing.Size(149, 84);
             this.AI_btn.TabIndex = 4;
             this.AI_btn.Text = "Complete by AI";
             this.AI_btn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.AI_btn.UseVisualStyleBackColor = true;
+            this.AI_btn.Click += new System.EventHandler(this.AI_btn_Click);
             // 
             // start_btn
             // 
             this.start_btn.Font = new System.Drawing.Font("Times New Roman", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.start_btn.Location = new System.Drawing.Point(538, 318);
+            this.start_btn.Location = new System.Drawing.Point(538, 316);
             this.start_btn.Name = "start_btn";
             this.start_btn.Size = new System.Drawing.Size(149, 53);
             this.start_btn.TabIndex = 5;
