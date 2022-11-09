@@ -40,12 +40,19 @@ namespace _15_Puzzle
             this.AI_btn = new System.Windows.Forms.Button();
             this.start_btn = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.ListMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.DeleteBtn = new System.Windows.Forms.ToolStripMenuItem();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.time = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.status = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.clearListBtn = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.panelBorder)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.title_container)).BeginInit();
             this.title_container.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.time_container)).BeginInit();
             this.time_container.SuspendLayout();
+            this.ListMenu.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -151,43 +158,67 @@ namespace _15_Puzzle
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // listBox1
+            // ListMenu
             // 
-            this.listBox1.BackColor = System.Drawing.Color.OldLace;
-            this.listBox1.ForeColor = System.Drawing.Color.Gray;
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.Items.AddRange(new object[] {
-            "1)   00:00:00      Solved",
-            "2)   00:00:00      Not Solved",
-            "3)   00:00:00      Solved",
-            "4)   00:00:00      Solved",
-            "5)   00:00:00      Solved",
-            "6)   00:00:00      Solved",
-            "7)   00:00:00      Not Solved",
-            "8)   00:00:00      Not Solved",
-            "9)   00:00:00      Solved",
-            "10) 00:00:00      Solved",
-            "11) 00:00:00      Solved",
-            "12) 00:00:00      Not Solved",
-            "13) 00:00:00      Solved",
-            "14) 00:00:00      Solved",
-            "15) 00:00:00      Solved",
-            "16) 00:00:00      Solved",
-            "17) 00:00:00      Not Solved",
-            "18) 00:00:00      Not Solved",
-            "19) 00:00:00      Solved",
-            "20) 00:00:00      Solved"});
-            this.listBox1.Location = new System.Drawing.Point(538, 154);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(156, 186);
-            this.listBox1.TabIndex = 6;
+            this.ListMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.DeleteBtn,
+            this.clearListBtn});
+            this.ListMenu.Name = "ListMenu";
+            this.ListMenu.Size = new System.Drawing.Size(177, 48);
+            // 
+            // DeleteBtn
+            // 
+            this.DeleteBtn.Name = "DeleteBtn";
+            this.DeleteBtn.Size = new System.Drawing.Size(180, 22);
+            this.DeleteBtn.Text = "Delete selected row";
+            this.DeleteBtn.Click += new System.EventHandler(this.DeleteBtn_Click);
+            // 
+            // dataGridView1
+            // 
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            this.dataGridView1.AllowUserToResizeColumns = false;
+            this.dataGridView1.AllowUserToResizeRows = false;
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.time,
+            this.status});
+            this.dataGridView1.ContextMenuStrip = this.ListMenu;
+            this.dataGridView1.Location = new System.Drawing.Point(538, 157);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.RowHeadersVisible = false;
+            this.dataGridView1.Size = new System.Drawing.Size(156, 186);
+            this.dataGridView1.TabIndex = 8;
+            // 
+            // time
+            // 
+            this.time.FillWeight = 98.47716F;
+            this.time.HeaderText = "time";
+            this.time.Name = "time";
+            // 
+            // status
+            // 
+            this.status.DisplayStyle = System.Windows.Forms.DataGridViewComboBoxDisplayStyle.ComboBox;
+            this.status.FillWeight = 101.5228F;
+            this.status.HeaderText = "Status";
+            this.status.MinimumWidth = 100;
+            this.status.Name = "status";
+            this.status.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.status.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // clearListBtn
+            // 
+            this.clearListBtn.Name = "clearListBtn";
+            this.clearListBtn.Size = new System.Drawing.Size(180, 22);
+            this.clearListBtn.Text = "Clear List";
+            this.clearListBtn.Click += new System.EventHandler(this.clearListBtn_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(706, 532);
-            this.Controls.Add(this.listBox1);
+            this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.start_btn);
             this.Controls.Add(this.AI_btn);
             this.Controls.Add(this.restart_btn);
@@ -202,6 +233,8 @@ namespace _15_Puzzle
             this.title_container.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.time_container)).EndInit();
             this.time_container.ResumeLayout(false);
+            this.ListMenu.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -218,7 +251,12 @@ namespace _15_Puzzle
         private System.Windows.Forms.Button AI_btn;
         private System.Windows.Forms.Button start_btn;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.ContextMenuStrip ListMenu;
+        private System.Windows.Forms.ToolStripMenuItem DeleteBtn;
+        private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn time;
+        private System.Windows.Forms.DataGridViewComboBoxColumn status;
+        private System.Windows.Forms.ToolStripMenuItem clearListBtn;
     }
 }
 

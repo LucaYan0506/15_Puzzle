@@ -19,6 +19,19 @@ namespace _15_Puzzle
         public Form1()
         {
             InitializeComponent();
+
+            //add items to the combobox of the datagridview
+            DataGridViewComboBoxColumn theColumn = (DataGridViewComboBoxColumn)this.dataGridView1.Columns[1];
+            theColumn.Items.Add("Solved");
+            theColumn.Items.Add("Not Solved");
+            theColumn.Items.Add("Solved by AI");
+
+            //add data to datagridview
+            dataGridView1.Rows.Add("00:00:05", theColumn.Items[0]);
+            dataGridView1.Rows.Add("00:20:15", theColumn.Items[1]);
+            dataGridView1.Rows.Add("00:12:05", theColumn.Items[2]);
+            dataGridView1.Rows.Add("00:45:05", theColumn.Items[1]);
+
             InitGame();
         }
         private void InitGame()
@@ -220,6 +233,25 @@ namespace _15_Puzzle
                 start_btn.PerformClick();
 
             InitGame();
+        }
+
+        private void DeleteBtn_Click(object sender, EventArgs e)
+        {
+            //clear rows of selected cells
+            foreach (DataGridViewCell cell in dataGridView1.SelectedCells)
+            {
+                //if cell it's the last row (means that is an uncommitted new raw, so cannot be deleted)
+                if (cell.RowIndex == dataGridView1.Rows.Count - 1)
+                    continue;
+                //delete row
+                dataGridView1.Rows.RemoveAt(cell.RowIndex);
+            }
+        }
+
+        private void clearListBtn_Click(object sender, EventArgs e)
+        {
+            //clear list
+            dataGridView1.Rows.Clear();
         }
     }
 }
