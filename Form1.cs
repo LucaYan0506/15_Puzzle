@@ -23,15 +23,18 @@ namespace _15_Puzzle
         }
         private void InitGame()
         {
+            //create a grid that tell me if a cell is empty or not
             grid = new Grid();
 
+            //generate locations for all blocks(buttons)
             Point[] locations = new Point[16];
-
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
                     locations[i * 4 + j] = new Point(100 * j,100 * i);
 
+            //clear panel
             panel1.Controls.Clear();
+            //genereate new blocks
             for (int i = 0; i < 15; i++)
             {
                 Button cell = new Button();
@@ -85,6 +88,7 @@ namespace _15_Puzzle
 
         private bool Solvable(List<Control> list_c)
         {
+            //parity algo
             int n = 0;
             for (int i = 0; i < list_c.Count; i++)
                 for (int j = i + 1; j < list_c.Count; j++)
@@ -96,9 +100,11 @@ namespace _15_Puzzle
 
         private void Cell_Click(object sender, EventArgs e)
         {
+            //if the game is not started, start the game
             if (freezeGame)
                 start_btn.PerformClick();
 
+            //get button and his indexes
             Button button = (Button)sender;
             int[] button_index = grid.LocationToIndex(button.Location);
 
@@ -109,7 +115,7 @@ namespace _15_Puzzle
                 { 0,1 },    //bottom
             };
 
-
+            //check if the button can go one of the directions
             for (int i = 0; i < 4; i++)
             {
                 int[] curr_index = new int[]{
@@ -117,8 +123,10 @@ namespace _15_Puzzle
                     button_index[1] + dirs[i, 1]
                 };
 
+                //if button can move to this direction 
                 if (!grid.OutOfBound(curr_index) && grid.isEmpty[curr_index[0], curr_index[1]])
                 {
+                    //update grid & number of wrong cells
                     grid.isEmpty[curr_index[0], curr_index[1]] = false;
                     if (int.Parse(button.Text) - 1 == (button_index[0] * 4 + button_index[1]))
                         grid.wrongCells++;
@@ -126,6 +134,7 @@ namespace _15_Puzzle
                     if (int.Parse(button.Text) - 1 == (curr_index[0] * 4 + curr_index[1]))
                         grid.wrongCells--;
 
+                    //move the button (in the GUI)
                     int distance = 20;
                     while (distance-- > 0)
                     {
@@ -133,6 +142,7 @@ namespace _15_Puzzle
                         System.Threading.Thread.Sleep(10);
                     }
 
+                    //checkif the user win 
                     if (grid.Win())
                     {
                         MessageBox.Show("Win");
@@ -149,12 +159,14 @@ namespace _15_Puzzle
 
         private void start_btn_Click(object sender, EventArgs e)
         {
+            //start the game
             if (start_btn.Text == "Start")
             {
                 timer1.Start();
                 start_btn.Text = "Stop";
                 freezeGame = false;
             }
+            //stop the game
             else
             {
                 timer1.Stop();
@@ -163,6 +175,7 @@ namespace _15_Puzzle
             }
         }
 
+        //update the time
         private void timer1_Tick(object sender, EventArgs e)
         {
             int sec = int.Parse(time_lbl.Text.Substring(6,2));
