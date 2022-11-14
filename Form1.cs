@@ -16,6 +16,15 @@ namespace _15_Puzzle
         Grid grid;
         bool freezeGame = true;
 
+        //get 4 directions 
+        int[][] dirs = new int[][]
+        {
+            new int[]{ 1,0 },   //top
+            new int[]{ -1,0 },  //bottom    
+            new int[]{ 0,-1 },  //right
+            new int[]{ 0,1 },   //left
+        };
+
         public Form1()
         {
             InitializeComponent();
@@ -63,6 +72,7 @@ namespace _15_Puzzle
                 cell.Click += Cell_Click;
             }
 
+            /*
             //Shuffle the puzzle
             List<Control> list_c = panel1.Controls.Cast<Control>().OrderBy(el => el.TabIndex).ToList();
             Random rnd = new Random();
@@ -90,6 +100,7 @@ namespace _15_Puzzle
                 if (int.Parse(c.Text) - 1 != (button_index[0] * 4 + button_index[1]))
                     grid.wrongCells++;
             }
+            */
         }
 
         private void swap(Control btn1, Control btn2)
@@ -222,7 +233,97 @@ namespace _15_Puzzle
 
         private void AI_btn_Click(object sender, EventArgs e)
         {
- 
+            int[] emptyCell = new int[2];
+            Button[,] blocks = new Button[grid.isEmpty.GetLength(0), grid.isEmpty.GetLength(1)];
+
+            //save buttons in a 4 by 4 grid
+            foreach (Button control in panel1.Controls)
+            {
+                int[] index = grid.LocationToIndex(control.Location);
+                blocks[index[0], index[1]] = control;
+            }
+
+            //find  the empty cell
+            for (int i = 0; i < blocks.GetLength(0); i++)
+            {
+                for (int j = 0; j < blocks.GetLength(1); j++)
+                    if (blocks[i, j] == null)
+                    {
+                        emptyCell = new int[] { i, j };
+                        break;
+                    }
+            }
+
+            //save position of blocks in a 4 by 4 grid
+            //e.g. 2  1  3  4
+            //     6  8  11 5
+            //     13 14 7  9
+            //     9  10 15 16(empty)
+            int[,] curr_state = new int[4, 4];
+            for (int i = 0; i < blocks.GetLength(0); i++)
+                for (int j = 0; j < blocks.GetLength(1); j++)
+                {
+                    if (blocks[i, j] == null)
+                        curr_state[i, j] = 16;
+                    else
+                        curr_state[i, j] = int.Parse(blocks[i,j].Text);
+                }   
+
+            //set to check this state is visited or not
+            HashSet<string> visited = new HashSet<string>();
+
+            /*
+            foreach (int[] dir in dirs)
+                if (!grid.Win())
+                    DFS(ref visited, emptyCell, curr_state, blocks, new int[] { dir[0] + emptyCell[0], dir[1] + emptyCell[1] });
+            */
+            DFS(ref visited, emptyCell, curr_state, blocks, new int[] { dirs[2][0] + emptyCell[0], dirs[2][1] + emptyCell[1] });
+        }
+
+        private void DFS(ref HashSet<string> visited, int[] emptyCell,  int[,] curr_state, Button[,] blocks, int[] currIndex)
+        {
+            if (grid.OutOfBound(currIndex))
+                return;
+
+            for (int i = 0; i < curr_state.GetLength(0); i++)
+            {
+                for (int j = 0; j < curr_state.GetLength(1); j++)
+                {
+                    Console.Write(curr_state[i, j] + " ");
+                }
+                Console.WriteLine();
+            }
+            MessageBox.Show("");
+            Console.WriteLine();
+            Console.WriteLine();
+
+            int temp = curr_state[currIndex[0], currIndex[1]];
+            curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+            curr_state[emptyCell[0], emptyCell[1]] = temp;
+
+            string curr_state_string = "";
+
+            foreach (int x in curr_state)
+                curr_state_string += x + " ";
+
+            if (visited.Contains(curr_state_string))
+                return;
+
+            visited.Add(curr_state_string);
+
+            //now emptyCell = currIndex 
+            //currIndex = emptycell because 2 buttons are swapped
+            blocks[currIndex[0], currIndex[1]].PerformClick();
+            blocks[emptyCell[0], emptyCell[1]] = blocks[currIndex[0], currIndex[1]];
+            blocks[currIndex[0], currIndex[1]] = new Button();
+           
+
+            foreach (int[] dir in dirs)
+                if (!grid.Win())
+                    DFS(ref visited, currIndex, curr_state, blocks, new int[] { dir[0] + currIndex[0], dir[1] + currIndex[1] });
+            
+            if (!grid.Win())
+                blocks[emptyCell[0], emptyCell[1]].PerformClick();
         }
 
         private void restart_btn_Click(object sender, EventArgs e)
@@ -253,5 +354,6 @@ namespace _15_Puzzle
             //clear list
             dataGridView1.Rows.Clear();
         }
+
     }
 }

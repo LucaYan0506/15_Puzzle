@@ -42,10 +42,10 @@ namespace _15_Puzzle
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.ListMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.DeleteBtn = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearListBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.time = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.status = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.clearListBtn = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.panelBorder)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.title_container)).BeginInit();
             this.title_container.SuspendLayout();
@@ -169,9 +169,16 @@ namespace _15_Puzzle
             // DeleteBtn
             // 
             this.DeleteBtn.Name = "DeleteBtn";
-            this.DeleteBtn.Size = new System.Drawing.Size(180, 22);
+            this.DeleteBtn.Size = new System.Drawing.Size(176, 22);
             this.DeleteBtn.Text = "Delete selected row";
             this.DeleteBtn.Click += new System.EventHandler(this.DeleteBtn_Click);
+            // 
+            // clearListBtn
+            // 
+            this.clearListBtn.Name = "clearListBtn";
+            this.clearListBtn.Size = new System.Drawing.Size(176, 22);
+            this.clearListBtn.Text = "Clear List";
+            this.clearListBtn.Click += new System.EventHandler(this.clearListBtn_Click);
             // 
             // dataGridView1
             // 
@@ -205,13 +212,6 @@ namespace _15_Puzzle
             this.status.Name = "status";
             this.status.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.status.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
-            // clearListBtn
-            // 
-            this.clearListBtn.Name = "clearListBtn";
-            this.clearListBtn.Size = new System.Drawing.Size(180, 22);
-            this.clearListBtn.Text = "Clear List";
-            this.clearListBtn.Click += new System.EventHandler(this.clearListBtn_Click);
             // 
             // Form1
             // 

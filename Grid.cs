@@ -40,6 +40,16 @@ namespace _15_Puzzle
             return res;
         }
 
+        public Point IndexToLocation(int [] index)
+        {
+            Point res = new Point();
+
+            res.Y = index[0] * 100;
+            res.X = index[1] * 100;
+
+            return res;
+        }
+
         public bool Win()
         {
             return wrongCells == 0;
