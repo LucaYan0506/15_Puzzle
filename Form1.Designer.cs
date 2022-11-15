@@ -46,6 +46,7 @@ namespace _15_Puzzle
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.time = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.status = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.backgroundWorkerAI = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.panelBorder)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.title_container)).BeginInit();
             this.title_container.SuspendLayout();
@@ -213,6 +214,10 @@ namespace _15_Puzzle
             this.status.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.status.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             // 
+            // backgroundWorkerAI
+            // 
+            this.backgroundWorkerAI.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerAI_DoWork);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -257,6 +262,7 @@ namespace _15_Puzzle
         private System.Windows.Forms.DataGridViewTextBoxColumn time;
         private System.Windows.Forms.DataGridViewComboBoxColumn status;
         private System.Windows.Forms.ToolStripMenuItem clearListBtn;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerAI;
     }
 }
 
