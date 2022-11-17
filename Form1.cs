@@ -384,16 +384,19 @@ namespace _15_Puzzle
                             temp = curr_state[backIndex[0], backIndex[1]];
                             curr_state[backIndex[0], backIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
                             curr_state[emptyCell[0], emptyCell[1]] = temp;
-                            action = () => blocks[emptyCell[0], emptyCell[1]].PerformClick();
-                            blocks[emptyCell[0], emptyCell[1]].Invoke(action);
-                            blocks[backIndex[0], backIndex[1]] = blocks[emptyCell[0], emptyCell[1]];
-                            blocks[emptyCell[0], emptyCell[1]] = null;
+                            action = () => blocks[backIndex[0], backIndex[1]].PerformClick();
+                            blocks[backIndex[0], backIndex[1]].Invoke(action);
+                            blocks[emptyCell[0], emptyCell[1]] = blocks[backIndex[0], backIndex[1]];
+                            blocks[backIndex[0], backIndex[1]] = null;
+
+                            emptyCell = backIndex;
                         }
                         
                     }
                 }
 
                 Console.WriteLine(stage);
+
 
                 visited.Add(curr_state_string);
 
