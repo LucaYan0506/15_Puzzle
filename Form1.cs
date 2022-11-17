@@ -372,7 +372,9 @@ namespace _15_Puzzle
                     continue;
                 }
 
-
+                if (blocks[currIndex[0], currIndex[1]] == null ||  int.Parse(blocks[currIndex[0], currIndex[1]].Text) <=  9)
+                    continue;
+               
                 if (back.Count > 0 && !grid.Win())
                 {
                     if (stage <= back.Peek().Key)
@@ -388,7 +390,7 @@ namespace _15_Puzzle
                             blocks[backIndex[0], backIndex[1]].Invoke(action);
                             blocks[emptyCell[0], emptyCell[1]] = blocks[backIndex[0], backIndex[1]];
                             blocks[backIndex[0], backIndex[1]] = null;
-
+                            
                             emptyCell = backIndex;
                         }
                         
@@ -413,11 +415,14 @@ namespace _15_Puzzle
 
 
                 foreach (int[] dir in dirs)
-                    if (!grid.Win() && !grid.OutOfBound(new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }))
+                    if (!grid.OutOfBound(new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }))
                         st.Push(new KeyValuePair<int, int[]>(stage + 1, new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }));
 
 
                 back.Push(new KeyValuePair<int, int[]>(stage, currIndex));
+
+                if (grid.Win())
+                    return;
             }
 
         }
@@ -493,90 +498,21 @@ namespace _15_Puzzle
             //set to check this state is visited or not
             HashSet<string> visited = new HashSet<string>();
 
+  
+            */
+
             var timer = new System.Diagnostics.Stopwatch();
             timer.Start();
 
-            foreach (int[] dir in dirs)
-                if (!grid.Win())
-                    DFS(ref visited, emptyCell, ref curr_state, blocks, new int[] { dir[0] + emptyCell[0], dir[1] + emptyCell[1] }, 0);
+            dfs2();
 
             timer.Stop();
 
             TimeSpan timeTaken = timer.Elapsed;
             Action action = () => time_lbl.Text = string.Format("{0}:{1}:{2}", NumberToTime(timeTaken.Hours), NumberToTime(timeTaken.Minutes), NumberToTime(timeTaken.Seconds));
-            time_lbl.Invoke(action);   
-            */
-            dfs2();
-            AI = false;
-        }
-
-        //dfs with iteration
-        private void button1_Click(object sender, EventArgs e)
-        {
-            dfs2();
-            /*
-            HashSet<string> visited = new HashSet<string>();
-            //dfs2(ref visited, 0, 0);
+            time_lbl.Invoke(action);
             
-            Stack<KeyValuePair<int,int[]>> st = new Stack<KeyValuePair<int, int[]>> ();
-            Stack<KeyValuePair<int,int[]>> back = new Stack<KeyValuePair<int, int[]>> ();
-            st.Push(new KeyValuePair<int, int[]>( 0,new int[] { 0, 0 }));
-            Array.Reverse(dirs);
-
-            while (st.Count > 0)
-            {
-
-                var curr = st.Pop();
-                int i = curr.Value[0], j = curr.Value[1], stage = curr.Key;
-
-                if (i >= 3 || i < 0 || j >= 3 || j < 0)
-                    continue;
-
-                if (visited.Contains(i + " " + j))
-                    continue;
-
-                if (test[i, j] == 0)
-                    continue;
-
-                if (back.Count > 0)
-                {
-                    var last_back = back.Pop();
-
-                    if (stage <= last_back.Key)
-                    {
-                        bool flag = false;
-                        while (stage <= last_back.Key)
-                        {
-                            Console.WriteLine("    " + test[last_back.Value[0], last_back.Value[1]]);
-                            if (back.Count > 0)
-                                last_back = back.Pop();
-                            else
-                            {
-                                flag = true;
-                                break;
-                            }
-                        }
-
-                        if (!flag)
-                            back.Push(last_back);
-                    }
-                    else
-                        back.Push(last_back);
-                }
-
-                visited.Add(i + " " + j);
-
-
-                Console.WriteLine(test[i, j]);
-                back.Push(new KeyValuePair<int, int[]>(stage, new int[] { i, j }));
-
-
-                foreach (int[] dir in dirs)
-                    st.Push(new KeyValuePair<int, int[]>(stage + 1, new int[] { i + dir[0], j + dir[1] }));
-
-            }
-            */
-
+            AI = false;
         }
     }
 }
