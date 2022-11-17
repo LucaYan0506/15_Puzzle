@@ -47,6 +47,7 @@ namespace _15_Puzzle
             this.time = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.status = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.backgroundWorkerAI = new System.ComponentModel.BackgroundWorker();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.panelBorder)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.title_container)).BeginInit();
             this.title_container.SuspendLayout();
@@ -218,11 +219,22 @@ namespace _15_Puzzle
             // 
             this.backgroundWorkerAI.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerAI_DoWork);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(591, 274);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 9;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(706, 532);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.start_btn);
             this.Controls.Add(this.AI_btn);
@@ -263,6 +275,7 @@ namespace _15_Puzzle
         private System.Windows.Forms.DataGridViewComboBoxColumn status;
         private System.Windows.Forms.ToolStripMenuItem clearListBtn;
         private System.ComponentModel.BackgroundWorker backgroundWorkerAI;
+        private System.Windows.Forms.Button button1;
     }
 }
 

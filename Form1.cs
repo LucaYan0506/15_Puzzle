@@ -23,9 +23,15 @@ namespace _15_Puzzle
         int[][] dirs = new int[][]
         {
             new int[]{ 1,0 },   //top
-            new int[]{ -1,0 },  //bottom    
             new int[]{ 0,-1 },  //right
             new int[]{ 0,1 },   //left
+            new int[]{ -1,0 },  //bottom    
+        };
+
+        int[,] test = new int[,]{
+            { 1,2,3 },
+            { 4,5,0 },
+            { 7,8,9 },
         };
 
         public Form1()
@@ -272,6 +278,8 @@ namespace _15_Puzzle
             blocks[emptyCell[0], emptyCell[1]] = blocks[currIndex[0], currIndex[1]];
             blocks[currIndex[0], currIndex[1]] = null;
 
+            Console.WriteLine(stage);
+
             foreach (int[] dir in dirs)
                 if (!grid.Win())
                     DFS(ref visited, currIndex, ref curr_state, blocks, new int[] { dir[0] + currIndex[0], dir[1] + currIndex[1] }, stage + 1);
@@ -286,6 +294,129 @@ namespace _15_Puzzle
                 blocks[currIndex[0], currIndex[1]] = blocks[emptyCell[0], emptyCell[1]];
                 blocks[emptyCell[0], emptyCell[1]] = null;
             }
+        }
+
+        private void dfs2()
+        {
+            int[] emptyCell = new int[2];
+            Button[,] blocks = new Button[grid.isEmpty.GetLength(0), grid.isEmpty.GetLength(1)];
+
+            //save buttons in a 4 by 4 grid
+            foreach (Button control in panel1.Controls)
+            {
+                int[] index = grid.LocationToIndex(control.Location);
+                blocks[index[0], index[1]] = control;
+            }
+
+            //find  the empty cell
+            for (int i = 0; i < blocks.GetLength(0); i++)
+            {
+                for (int j = 0; j < blocks.GetLength(1); j++)
+                    if (blocks[i, j] == null)
+                    {
+                        emptyCell = new int[] { i, j };
+                        break;
+                    }
+            }
+
+            //save position of blocks in a 4 by 4 grid
+            //e.g. 2  1  3  4
+            //     6  8  11 5
+            //     13 14 7  9
+            //     9  10 15 16(empty)
+            int[,] curr_state = new int[4, 4];
+            for (int i = 0; i < blocks.GetLength(0); i++)
+                for (int j = 0; j < blocks.GetLength(1); j++)
+                {
+                    if (blocks[i, j] == null)
+                        curr_state[i, j] = 16;
+                    else
+                        curr_state[i, j] = int.Parse(blocks[i, j].Text);
+                }
+
+            //set to check this state is visited or not
+            HashSet<string> visited = new HashSet<string>();
+
+            Stack<KeyValuePair<int, int[]>> st = new Stack<KeyValuePair<int, int[]>>();
+            Stack<KeyValuePair<int, int[]>> back = new Stack<KeyValuePair<int, int[]>>();
+
+            Action action;
+
+            foreach (int[] dir in dirs)
+                st.Push(new KeyValuePair<int, int[]>(0, new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }));
+
+            while (st.Count > 0)
+            {
+                var curr = st.Pop();
+                int stage = curr.Key;
+                int[] currIndex = curr.Value;
+
+                if (grid.OutOfBound(currIndex))
+                    continue;
+
+                int temp = curr_state[currIndex[0], currIndex[1]];
+                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+                curr_state[emptyCell[0], emptyCell[1]] = temp;
+
+
+                string curr_state_string = "";
+
+                foreach (int x in curr_state)
+                    curr_state_string += x + " ";
+
+                if (visited.Contains(curr_state_string))
+                {
+                    temp = curr_state[currIndex[0], currIndex[1]];
+                    curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+                    curr_state[emptyCell[0], emptyCell[1]] = temp;
+                    continue;
+                }
+
+
+                if (back.Count > 0 && !grid.Win())
+                {
+                    if (stage <= back.Peek().Key)
+                    {
+                        while (back.Count > 0 && stage <= back.Peek().Key)
+                        {
+                            var last_back = back.Pop();
+                            var backIndex = last_back.Value;
+                            temp = curr_state[backIndex[0], backIndex[1]];
+                            curr_state[backIndex[0], backIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+                            curr_state[emptyCell[0], emptyCell[1]] = temp;
+                            action = () => blocks[emptyCell[0], emptyCell[1]].PerformClick();
+                            blocks[emptyCell[0], emptyCell[1]].Invoke(action);
+                            blocks[backIndex[0], backIndex[1]] = blocks[emptyCell[0], emptyCell[1]];
+                            blocks[emptyCell[0], emptyCell[1]] = null;
+                        }
+                        
+                    }
+                }
+
+                Console.WriteLine(stage);
+
+                visited.Add(curr_state_string);
+
+                action = () => blocks[currIndex[0], currIndex[1]].PerformClick();
+                blocks[currIndex[0], currIndex[1]].Invoke(action);
+                blocks[emptyCell[0], emptyCell[1]] = blocks[currIndex[0], currIndex[1]];
+                blocks[currIndex[0], currIndex[1]] = null;
+
+                //now emptyCell = currIndex 
+                //currIndex = emptycell because 2 buttons are swapped
+                var temp2 = currIndex;
+                currIndex = emptyCell;
+                emptyCell = temp2;
+
+
+                foreach (int[] dir in dirs)
+                    if (!grid.Win() && !grid.OutOfBound(new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }))
+                        st.Push(new KeyValuePair<int, int[]>(stage + 1, new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }));
+
+
+                back.Push(new KeyValuePair<int, int[]>(stage, currIndex));
+            }
+
         }
 
         private void restart_btn_Click(object sender, EventArgs e)
@@ -319,6 +450,7 @@ namespace _15_Puzzle
 
         private void backgroundWorkerAI_DoWork(object sender, DoWorkEventArgs e)
         {
+            /*
             int[] emptyCell = new int[2];
             Button[,] blocks = new Button[grid.isEmpty.GetLength(0), grid.isEmpty.GetLength(1)];
 
@@ -369,9 +501,79 @@ namespace _15_Puzzle
 
             TimeSpan timeTaken = timer.Elapsed;
             Action action = () => time_lbl.Text = string.Format("{0}:{1}:{2}", NumberToTime(timeTaken.Hours), NumberToTime(timeTaken.Minutes), NumberToTime(timeTaken.Seconds));
-            time_lbl.Invoke(action);
-
+            time_lbl.Invoke(action);   
+            */
+            dfs2();
             AI = false;
+        }
+
+        //dfs with iteration
+        private void button1_Click(object sender, EventArgs e)
+        {
+            dfs2();
+            /*
+            HashSet<string> visited = new HashSet<string>();
+            //dfs2(ref visited, 0, 0);
+            
+            Stack<KeyValuePair<int,int[]>> st = new Stack<KeyValuePair<int, int[]>> ();
+            Stack<KeyValuePair<int,int[]>> back = new Stack<KeyValuePair<int, int[]>> ();
+            st.Push(new KeyValuePair<int, int[]>( 0,new int[] { 0, 0 }));
+            Array.Reverse(dirs);
+
+            while (st.Count > 0)
+            {
+
+                var curr = st.Pop();
+                int i = curr.Value[0], j = curr.Value[1], stage = curr.Key;
+
+                if (i >= 3 || i < 0 || j >= 3 || j < 0)
+                    continue;
+
+                if (visited.Contains(i + " " + j))
+                    continue;
+
+                if (test[i, j] == 0)
+                    continue;
+
+                if (back.Count > 0)
+                {
+                    var last_back = back.Pop();
+
+                    if (stage <= last_back.Key)
+                    {
+                        bool flag = false;
+                        while (stage <= last_back.Key)
+                        {
+                            Console.WriteLine("    " + test[last_back.Value[0], last_back.Value[1]]);
+                            if (back.Count > 0)
+                                last_back = back.Pop();
+                            else
+                            {
+                                flag = true;
+                                break;
+                            }
+                        }
+
+                        if (!flag)
+                            back.Push(last_back);
+                    }
+                    else
+                        back.Push(last_back);
+                }
+
+                visited.Add(i + " " + j);
+
+
+                Console.WriteLine(test[i, j]);
+                back.Push(new KeyValuePair<int, int[]>(stage, new int[] { i, j }));
+
+
+                foreach (int[] dir in dirs)
+                    st.Push(new KeyValuePair<int, int[]>(stage + 1, new int[] { i + dir[0], j + dir[1] }));
+
+            }
+            */
+
         }
     }
 }
