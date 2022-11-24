@@ -18,6 +18,7 @@ namespace _15_Puzzle
         Grid grid;
         bool freezeGame = true;
         bool AI = false;
+        bool stopDFS = false;
 
         //get 4 directions 
         int[][] dirs = new int[][]
@@ -178,7 +179,8 @@ namespace _15_Puzzle
                     if (grid.Win())
                     {
                         MessageBox.Show("Win");
-                        start_btn.PerformClick();
+                        if (!AI)
+                            start_btn.PerformClick();
                     }
 
                 }
@@ -191,6 +193,8 @@ namespace _15_Puzzle
 
         private void start_btn_Click(object sender, EventArgs e)
         {
+            AI = false;
+
             //start the game
             if (start_btn.Text == "Start")
             {
@@ -243,8 +247,16 @@ namespace _15_Puzzle
         {
             if (!backgroundWorkerAI.IsBusy)
             {
-                backgroundWorkerAI.RunWorkerAsync();
+                if (start_btn.Text == "Stop")
+                    start_btn.PerformClick();
+                stopDFS = false;
                 AI = true;
+                backgroundWorkerAI.RunWorkerAsync();
+            }
+            else
+            {
+                stopDFS = true;
+                AI = false;
             }
         }
 
@@ -336,6 +348,22 @@ namespace _15_Puzzle
 
             //set to check this state is visited or not
             HashSet<string> visited = new HashSet<string>();
+            HashSet<int> locked = new HashSet<int>();
+            //locked.Add(1);
+            //locked.Add(2);
+            //locked.Add(3);
+            //locked.Add(4);
+            //locked.Add(5);
+            //locked.Add(6);
+            //locked.Add(7);
+            //locked.Add(8);
+
+            string curr_state_string = "";
+            foreach (int x in curr_state)
+                curr_state_string += x + " ";
+
+            for (int i = 0; i < 14; i++)
+                lockBlock(i, curr_state_string, ref locked);
 
             Stack<KeyValuePair<int, int[]>> st = new Stack<KeyValuePair<int, int[]>>();
             Stack<KeyValuePair<int, int[]>> back = new Stack<KeyValuePair<int, int[]>>();
@@ -347,6 +375,9 @@ namespace _15_Puzzle
 
             while (st.Count > 0)
             {
+                if (stopDFS)
+                    return;
+
                 var curr = st.Pop();
                 int stage = curr.Key;
                 int[] currIndex = curr.Value;
@@ -359,12 +390,12 @@ namespace _15_Puzzle
                 curr_state[emptyCell[0], emptyCell[1]] = temp;
 
 
-                string curr_state_string = "";
+                curr_state_string = "";
 
                 foreach (int x in curr_state)
                     curr_state_string += x + " ";
 
-                if (visited.Contains(curr_state_string))
+                if (visited.Contains(curr_state_string) || blocks[currIndex[0], currIndex[1]] == null || locked.Contains(int.Parse(blocks[currIndex[0], currIndex[1]].Text)))
                 {
                     temp = curr_state[currIndex[0], currIndex[1]];
                     curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
@@ -372,15 +403,28 @@ namespace _15_Puzzle
                     continue;
                 }
 
-                if (blocks[currIndex[0], currIndex[1]] == null ||  int.Parse(blocks[currIndex[0], currIndex[1]].Text) <=  9)
-                    continue;
-               
+                temp = curr_state[currIndex[0], currIndex[1]];
+                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+                curr_state[emptyCell[0], emptyCell[1]] = temp;
+
+                visited.Add(curr_state_string);
+                if (lockBlock(int.Parse(blocks[currIndex[0], currIndex[1]].Text), curr_state_string, ref locked))
+                {
+                    st.Clear();
+                    back.Clear();
+                    visited.Clear();
+                }
+
+
                 if (back.Count > 0 && !grid.Win())
                 {
                     if (stage <= back.Peek().Key)
                     {
                         while (back.Count > 0 && stage <= back.Peek().Key)
                         {
+                            if (stopDFS)
+                                return;
+
                             var last_back = back.Pop();
                             var backIndex = last_back.Value;
                             temp = curr_state[backIndex[0], backIndex[1]];
@@ -400,12 +444,14 @@ namespace _15_Puzzle
                 Console.WriteLine(stage);
 
 
-                visited.Add(curr_state_string);
 
                 action = () => blocks[currIndex[0], currIndex[1]].PerformClick();
                 blocks[currIndex[0], currIndex[1]].Invoke(action);
                 blocks[emptyCell[0], emptyCell[1]] = blocks[currIndex[0], currIndex[1]];
                 blocks[currIndex[0], currIndex[1]] = null;
+                temp = curr_state[currIndex[0], currIndex[1]];
+                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+                curr_state[emptyCell[0], emptyCell[1]] = temp;
 
                 //now emptyCell = currIndex 
                 //currIndex = emptycell because 2 buttons are swapped
@@ -425,6 +471,103 @@ namespace _15_Puzzle
                     return;
             }
 
+        }
+
+        private bool lockBlock(int n, string curr_state_string, ref HashSet<int> locked)
+        {
+            if (locked.Contains(n))
+                return false;
+
+            bool blockLocked = false;
+
+            int[] curr_state = new int[17];
+            int i;
+
+            for (i = 0; i < curr_state.Length; i++)
+                curr_state[i] = 0;
+
+            i = 1;
+            foreach (char c in curr_state_string)
+            {
+                if (c == ' ')
+                    i++;
+                else
+                {
+                    curr_state[i] *= 10;
+                    curr_state[i] += c - '0';
+                }
+
+
+            }
+
+            switch (n)
+            {
+                case 1:
+                    if (curr_state[1] == 1 && curr_state[2] == 2)
+                    {
+                        blockLocked = true;
+                        locked.Add(1);
+                        locked.Add(2);
+                    }
+                    else if (curr_state[1] == 1 && !locked.Contains(4))
+                    {
+                        blockLocked = true;
+                        locked.Add(1);
+                    }
+                    break;
+                case 2:
+                    if (curr_state[1] == 1 && curr_state[2] == 2)
+                    {
+                        blockLocked = true;
+                        locked.Add(1);
+                        locked.Add(2);
+                    }
+                    break;
+                case 3:
+                    if (curr_state[3] == 3 && curr_state[4] == 4)
+                    {
+                        blockLocked = true;
+                        locked.Add(1);
+                        locked.Add(2);
+                    }
+                    break;
+                case 4:
+                    if (curr_state[3] == 3 && curr_state[4] == 4)
+                    {
+                        blockLocked = true;
+                        locked.Add(1);
+                        locked.Add(2);
+                    }
+                    else if (curr_state[4] == 4 && !locked.Contains(1))
+                    {
+                        blockLocked = true;
+                        locked.Add(4);
+                    }
+                    break;
+                case 5:
+                    break;
+                case 6:
+                    break;
+                case 7:
+                    break;
+                case 8:
+                    break;
+                case 9: case 13:
+                    if (curr_state[9] == 9 && curr_state[13] == 13)
+                    {
+                        blockLocked = true;
+                        locked.Add(9);
+                        locked.Add(13);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if (locked.Contains(1) && locked.Contains(2) && locked.Contains(3) && locked.Contains(4))
+                Console.WriteLine("");
+
+            return blockLocked;
         }
 
         private void restart_btn_Click(object sender, EventArgs e)
@@ -458,61 +601,22 @@ namespace _15_Puzzle
 
         private void backgroundWorkerAI_DoWork(object sender, DoWorkEventArgs e)
         {
-            /*
-            int[] emptyCell = new int[2];
-            Button[,] blocks = new Button[grid.isEmpty.GetLength(0), grid.isEmpty.GetLength(1)];
-
-            //save buttons in a 4 by 4 grid
-            foreach (Button control in panel1.Controls)
-            {
-                int[] index = grid.LocationToIndex(control.Location);
-                blocks[index[0], index[1]] = control;
-            }
-
-            //find  the empty cell
-            for (int i = 0; i < blocks.GetLength(0); i++)
-            {
-                for (int j = 0; j < blocks.GetLength(1); j++)
-                    if (blocks[i, j] == null)
-                    {
-                        emptyCell = new int[] { i, j };
-                        break;
-                    }
-            }
-
-            //save position of blocks in a 4 by 4 grid
-            //e.g. 2  1  3  4
-            //     6  8  11 5
-            //     13 14 7  9
-            //     9  10 15 16(empty)
-            int[,] curr_state = new int[4, 4];
-            for (int i = 0; i < blocks.GetLength(0); i++)
-                for (int j = 0; j < blocks.GetLength(1); j++)
-                {
-                    if (blocks[i, j] == null)
-                        curr_state[i, j] = 16;
-                    else
-                        curr_state[i, j] = int.Parse(blocks[i, j].Text);
-                }
-
-            //set to check this state is visited or not
-            HashSet<string> visited = new HashSet<string>();
-
-  
-            */
-
-            var timer = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
             timer.Start();
+
+            if (grid.Win())
+            {
+                MessageBox.Show("Win");
+                return;
+            }
 
             dfs2();
 
             timer.Stop();
-
+            AI = false;
             TimeSpan timeTaken = timer.Elapsed;
             Action action = () => time_lbl.Text = string.Format("{0}:{1}:{2}", NumberToTime(timeTaken.Hours), NumberToTime(timeTaken.Minutes), NumberToTime(timeTaken.Seconds));
             time_lbl.Invoke(action);
-            
-            AI = false;
         }
     }
 }
