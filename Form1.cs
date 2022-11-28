@@ -349,14 +349,6 @@ namespace _15_Puzzle
             //set to check this state is visited or not
             HashSet<string> visited = new HashSet<string>();
             HashSet<int> locked = new HashSet<int>();
-            //locked.Add(1);
-            //locked.Add(2);
-            //locked.Add(3);
-            //locked.Add(4);
-            //locked.Add(5);
-            //locked.Add(6);
-            //locked.Add(7);
-            //locked.Add(8);
 
             string curr_state_string = "";
             foreach (int x in curr_state)
@@ -381,40 +373,8 @@ namespace _15_Puzzle
                 var curr = st.Pop();
                 int stage = curr.Key;
                 int[] currIndex = curr.Value;
-
-                if (grid.OutOfBound(currIndex))
-                    continue;
-
-                int temp = curr_state[currIndex[0], currIndex[1]];
-                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                curr_state[emptyCell[0], emptyCell[1]] = temp;
-
-
-                curr_state_string = "";
-
-                foreach (int x in curr_state)
-                    curr_state_string += x + " ";
-
-                if (visited.Contains(curr_state_string) || blocks[currIndex[0], currIndex[1]] == null || locked.Contains(int.Parse(blocks[currIndex[0], currIndex[1]].Text)))
-                {
-                    temp = curr_state[currIndex[0], currIndex[1]];
-                    curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                    curr_state[emptyCell[0], emptyCell[1]] = temp;
-                    continue;
-                }
-
-                temp = curr_state[currIndex[0], currIndex[1]];
-                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                curr_state[emptyCell[0], emptyCell[1]] = temp;
-
-                visited.Add(curr_state_string);
-                if (lockBlock(int.Parse(blocks[currIndex[0], currIndex[1]].Text), curr_state_string, ref locked))
-                {
-                    st.Clear();
-                    back.Clear();
-                    visited.Clear();
-                }
-
+                int temp;
+                bool isCorrectSide_prev;
 
                 if (back.Count > 0 && !grid.Win())
                 {
@@ -441,17 +401,51 @@ namespace _15_Puzzle
                     }
                 }
 
-                Console.WriteLine(stage);
 
+                if (grid.OutOfBound(currIndex))
+                    continue;
+
+                isCorrectSide_prev = IsCorrectSide(int.Parse(blocks[currIndex[0], currIndex[1]].Text), curr_state);
+
+                temp = curr_state[currIndex[0], currIndex[1]];
+                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+                curr_state[emptyCell[0], emptyCell[1]] = temp;
+
+
+                curr_state_string = "";
+
+                foreach (int x in curr_state)
+                    curr_state_string += x + " ";
+
+                if (visited.Contains(curr_state_string) || locked.Contains(int.Parse(blocks[currIndex[0], currIndex[1]].Text)))
+                {
+                    temp = curr_state[currIndex[0], currIndex[1]];
+                    curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+                    curr_state[emptyCell[0], emptyCell[1]] = temp;
+                    continue;
+                }
+                visited.Add(curr_state_string);
+
+                if (isCorrectSide_prev && !IsCorrectSide(int.Parse(blocks[currIndex[0], currIndex[1]].Text), curr_state))
+                {
+                    temp = curr_state[currIndex[0], currIndex[1]];
+                    curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
+                    curr_state[emptyCell[0], emptyCell[1]] = temp;
+                    continue;
+                }
+
+                if (lockBlock(int.Parse(blocks[currIndex[0], currIndex[1]].Text), curr_state_string, ref locked))
+                {
+                    st.Clear();
+                    back.Clear();
+                    visited.Clear();
+                }
 
 
                 action = () => blocks[currIndex[0], currIndex[1]].PerformClick();
                 blocks[currIndex[0], currIndex[1]].Invoke(action);
                 blocks[emptyCell[0], emptyCell[1]] = blocks[currIndex[0], currIndex[1]];
                 blocks[currIndex[0], currIndex[1]] = null;
-                temp = curr_state[currIndex[0], currIndex[1]];
-                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                curr_state[emptyCell[0], emptyCell[1]] = temp;
 
                 //now emptyCell = currIndex 
                 //currIndex = emptycell because 2 buttons are swapped
@@ -459,6 +453,7 @@ namespace _15_Puzzle
                 currIndex = emptyCell;
                 emptyCell = temp2;
 
+                Console.WriteLine(stage);
 
                 foreach (int[] dir in dirs)
                     if (!grid.OutOfBound(new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }))
@@ -471,6 +466,32 @@ namespace _15_Puzzle
                     return;
             }
 
+        }
+
+        //
+        private bool IsCorrectSide(int n, int[,] curr_state)
+        {
+            //put 1 2 5 6  9 13 to the left side
+            //put 3 4 7 8 to the right side
+            switch (n)
+            {
+                case 1: case 2: case 5: case 6:
+                    for (int i = 0; i < curr_state.GetLength(0); i++)
+                        for (int j = 0; j < curr_state.GetLength(1) / 2; j++)
+                            if (curr_state[i, j] == n)
+                                return true;
+                    break;
+                case 3: case 4: case 7: case 8:
+                    for (int i = 0; i < curr_state.GetLength(0); i++)
+                        for (int j = curr_state.GetLength(1) / 2; j < curr_state.GetLength(1); j++)
+                            if (curr_state[i, j] == n)
+                                return true;
+                    break;
+                default:
+                    return true;
+            }
+
+            return false;
         }
 
         private bool lockBlock(int n, string curr_state_string, ref HashSet<int> locked)
@@ -502,20 +523,7 @@ namespace _15_Puzzle
 
             switch (n)
             {
-                case 1:
-                    if (curr_state[1] == 1 && curr_state[2] == 2)
-                    {
-                        blockLocked = true;
-                        locked.Add(1);
-                        locked.Add(2);
-                    }
-                    else if (curr_state[1] == 1 && !locked.Contains(4))
-                    {
-                        blockLocked = true;
-                        locked.Add(1);
-                    }
-                    break;
-                case 2:
+                case 1:case 2:
                     if (curr_state[1] == 1 && curr_state[2] == 2)
                     {
                         blockLocked = true;
@@ -523,37 +531,33 @@ namespace _15_Puzzle
                         locked.Add(2);
                     }
                     break;
-                case 3:
+                case 3:case 4:
                     if (curr_state[3] == 3 && curr_state[4] == 4)
                     {
                         blockLocked = true;
-                        locked.Add(1);
-                        locked.Add(2);
-                    }
-                    break;
-                case 4:
-                    if (curr_state[3] == 3 && curr_state[4] == 4)
-                    {
-                        blockLocked = true;
-                        locked.Add(1);
-                        locked.Add(2);
-                    }
-                    else if (curr_state[4] == 4 && !locked.Contains(1))
-                    {
-                        blockLocked = true;
+                        locked.Add(3);
                         locked.Add(4);
                     }
                     break;
-                case 5:
+                case 5:case 6:
+                
+                    if (curr_state[5] == 5 && curr_state[6] == 6 && locked.Contains(1))
+                    {
+                        blockLocked = true;
+                        locked.Add(5);
+                        locked.Add(6);
+                    }
                     break;
-                case 6:
-                    break;
-                case 7:
-                    break;
-                case 8:
+                case 7:case 8:
+                    if (curr_state[7] == 7 && curr_state[8] == 8 && locked.Contains(3))
+                    {
+                        blockLocked = true;
+                        locked.Add(7);
+                        locked.Add(8);
+                    }
                     break;
                 case 9: case 13:
-                    if (curr_state[9] == 9 && curr_state[13] == 13)
+                    if (curr_state[9] == 9 && curr_state[13] == 13 && locked.Contains(5))
                     {
                         blockLocked = true;
                         locked.Add(9);
@@ -564,9 +568,8 @@ namespace _15_Puzzle
                     break;
             }
 
-            if (locked.Contains(1) && locked.Contains(2) && locked.Contains(3) && locked.Contains(4))
-                Console.WriteLine("");
-
+            if (blockLocked)
+                Console.Write(n);
             return blockLocked;
         }
 
