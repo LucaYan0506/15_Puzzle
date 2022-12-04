@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
+using System.IO;
 
 namespace _15_Puzzle
 {
@@ -17,23 +18,7 @@ namespace _15_Puzzle
         //global variable
         Grid grid;
         bool freezeGame = true;
-        bool AI = false;
-        bool stopDFS = false;
-
-        //get 4 directions 
-        int[][] dirs = new int[][]
-        {
-            new int[]{ 1,0 },   //top
-            new int[]{ 0,-1 },  //right
-            new int[]{ 0,1 },   //left
-            new int[]{ -1,0 },  //bottom    
-        };
-
-        int[,] test = new int[,]{
-            { 1,2,3 },
-            { 4,5,0 },
-            { 7,8,9 },
-        };
+        bool AI_is_working = false;
 
         public Form1()
         {
@@ -41,15 +26,8 @@ namespace _15_Puzzle
 
             //add items to the combobox of the datagridview
             DataGridViewComboBoxColumn theColumn = (DataGridViewComboBoxColumn)this.dataGridView1.Columns[1];
-            theColumn.Items.Add("Solved");
-            theColumn.Items.Add("Not Solved");
+            theColumn.Items.Add("Solved by user");
             theColumn.Items.Add("Solved by AI");
-
-            //add data to datagridview
-            dataGridView1.Rows.Add("00:00:05", theColumn.Items[0]);
-            dataGridView1.Rows.Add("00:20:15", theColumn.Items[1]);
-            dataGridView1.Rows.Add("00:12:05", theColumn.Items[2]);
-            dataGridView1.Rows.Add("00:45:05", theColumn.Items[1]);
 
             InitGame();
         }
@@ -106,6 +84,7 @@ namespace _15_Puzzle
             foreach (Control c in list_c)
             {
                 int[] button_index = grid.LocationToIndex(c.Location);
+                //if c is not in the correct cell
                 if (int.Parse(c.Text) - 1 != (button_index[0] * 4 + button_index[1]))
                     grid.wrongCells++;
             }
@@ -113,6 +92,7 @@ namespace _15_Puzzle
 
         private void swap(Control btn1, Control btn2)
         {
+            //swap location of btn1 & btn2
             Point temp = btn1.Location;
             btn1.Location = btn2.Location;
             btn2.Location = temp;
@@ -133,7 +113,7 @@ namespace _15_Puzzle
         private void Cell_Click(object sender, EventArgs e)
         {
             //if the game is not started, start the game
-            if (freezeGame && !AI)
+            if (freezeGame && !AI_is_working)
                 start_btn.PerformClick();
 
             //get button and his indexes
@@ -166,34 +146,41 @@ namespace _15_Puzzle
                     if (int.Parse(button.Text) - 1 == (curr_index[0] * 4 + curr_index[1]))
                         grid.wrongCells--;
 
+                    //add a timer
                     //move the button (in the GUI)
-                    int distance = 10;//speed to move the block is 100 ms
+                    int distance = 10;//speed to move the block is 160 ms
 
                     while (distance-- > 0)
                     {
                         button.Location = new Point(button.Location.X + dirs[i, 1] * 10, button.Location.Y + dirs[i, 0] * 10);
                         System.Threading.Thread.Sleep(10);
                     }
-
-                    //checkif the user win 
-                    if (grid.Win())
+                    //check if the user win 
+                    if (grid.Win() && !AI_is_working)
                     {
                         MessageBox.Show("Win");
-                        if (!AI)
-                            start_btn.PerformClick();
+                        //save the result into the table
+                        DataGridViewComboBoxColumn theColumn = (DataGridViewComboBoxColumn)this.dataGridView1.Columns[1];
+
+                        //if user is playing stop the timer
+                        refreshList();
+                        dataGridView1.Rows.Add(time_lbl.Text, theColumn.Items[0]);
+                        updateFile();
+                        start_btn.PerformClick();
                     }
 
                 }
             }
-
-
-
-
         }
 
         private void start_btn_Click(object sender, EventArgs e)
         {
-            AI = false;
+            //if AI is working, stop it
+            if (AI_is_working)
+            {
+                AI_btn.PerformClick();
+                AI_is_working = false;
+            }
 
             //start the game
             if (start_btn.Text == "Start")
@@ -236,6 +223,7 @@ namespace _15_Puzzle
 
         string NumberToTime(int n)
         {
+            //make sure that return 2 digits. E.g. "01", instead of "1"
             if (n < 10)
                 return "0" + (char)(n + '0');
 
@@ -245,344 +233,132 @@ namespace _15_Puzzle
 
         private void AI_btn_Click(object sender, EventArgs e)
         {
+            //start AI (in the background)
             if (!backgroundWorkerAI.IsBusy)
             {
+                //if user is playing, stop the timer
                 if (start_btn.Text == "Stop")
                     start_btn.PerformClick();
-                stopDFS = false;
-                AI = true;
+
+                //set AI_is_working = true (since AI starts to work)
+                AI_is_working = true;
                 backgroundWorkerAI.RunWorkerAsync();
             }
-            else
-            {
-                stopDFS = true;
-                AI = false;
-            }
-        }
-
-        private void DFS(ref HashSet<string> visited, int[] emptyCell, ref int[,] curr_state, Button[,] blocks, int[] currIndex, int stage)
-        {
-            if (grid.OutOfBound(currIndex))
-                return;
-
-            int temp = curr_state[currIndex[0], currIndex[1]];
-            curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-            curr_state[emptyCell[0], emptyCell[1]] = temp;
-
-            string curr_state_string = "";
-
-            foreach (int x in curr_state)
-                curr_state_string += x + " ";
-
-            if (visited.Contains(curr_state_string))
-            {
-                temp = curr_state[currIndex[0], currIndex[1]];
-                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                curr_state[emptyCell[0], emptyCell[1]] = temp;
-                return;
-            }
-
-            visited.Add(curr_state_string);
-            //now emptyCell = currIndex 
-            //currIndex = emptycell because 2 buttons are swapped
-            Action action = () => blocks[currIndex[0], currIndex[1]].PerformClick();
-            blocks[currIndex[0], currIndex[1]].Invoke(action);
-            blocks[emptyCell[0], emptyCell[1]] = blocks[currIndex[0], currIndex[1]];
-            blocks[currIndex[0], currIndex[1]] = null;
-
-            Console.WriteLine(stage);
-
-            foreach (int[] dir in dirs)
-                if (!grid.Win())
-                    DFS(ref visited, currIndex, ref curr_state, blocks, new int[] { dir[0] + currIndex[0], dir[1] + currIndex[1] }, stage + 1);
-
-            if (!grid.Win())
-            {
-                temp = curr_state[currIndex[0], currIndex[1]];
-                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                curr_state[emptyCell[0], emptyCell[1]] = temp;
-                action = () => blocks[emptyCell[0], emptyCell[1]].PerformClick();
-                blocks[emptyCell[0], emptyCell[1]].Invoke(action);
-                blocks[currIndex[0], currIndex[1]] = blocks[emptyCell[0], emptyCell[1]];
-                blocks[emptyCell[0], emptyCell[1]] = null;
-            }
-        }
-
-        private void dfs2()
-        {
-            int[] emptyCell = new int[2];
-            Button[,] blocks = new Button[grid.isEmpty.GetLength(0), grid.isEmpty.GetLength(1)];
-
-            //save buttons in a 4 by 4 grid
-            foreach (Button control in panel1.Controls)
-            {
-                int[] index = grid.LocationToIndex(control.Location);
-                blocks[index[0], index[1]] = control;
-            }
-
-            //find  the empty cell
-            for (int i = 0; i < blocks.GetLength(0); i++)
-            {
-                for (int j = 0; j < blocks.GetLength(1); j++)
-                    if (blocks[i, j] == null)
-                    {
-                        emptyCell = new int[] { i, j };
-                        break;
-                    }
-            }
-
-            //save position of blocks in a 4 by 4 grid
-            //e.g. 2  1  3  4
-            //     6  8  11 5
-            //     13 14 7  9
-            //     9  10 15 16(empty)
-            int[,] curr_state = new int[4, 4];
-            for (int i = 0; i < blocks.GetLength(0); i++)
-                for (int j = 0; j < blocks.GetLength(1); j++)
-                {
-                    if (blocks[i, j] == null)
-                        curr_state[i, j] = 16;
-                    else
-                        curr_state[i, j] = int.Parse(blocks[i, j].Text);
-                }
-
-            //set to check this state is visited or not
-            HashSet<string> visited = new HashSet<string>();
-            HashSet<int> locked = new HashSet<int>();
-
-            string curr_state_string = "";
-            foreach (int x in curr_state)
-                curr_state_string += x + " ";
-
-            for (int i = 0; i < 14; i++)
-                lockBlock(i, curr_state_string, ref locked);
-
-            Stack<KeyValuePair<int, int[]>> st = new Stack<KeyValuePair<int, int[]>>();
-            Stack<KeyValuePair<int, int[]>> back = new Stack<KeyValuePair<int, int[]>>();
-
-            Action action;
-
-            foreach (int[] dir in dirs)
-                st.Push(new KeyValuePair<int, int[]>(0, new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }));
-
-            while (st.Count > 0)
-            {
-                if (stopDFS)
-                    return;
-
-                var curr = st.Pop();
-                int stage = curr.Key;
-                int[] currIndex = curr.Value;
-                int temp;
-                bool isCorrectSide_prev;
-
-                if (back.Count > 0 && !grid.Win())
-                {
-                    if (stage <= back.Peek().Key)
-                    {
-                        while (back.Count > 0 && stage <= back.Peek().Key)
-                        {
-                            if (stopDFS)
-                                return;
-
-                            var last_back = back.Pop();
-                            var backIndex = last_back.Value;
-                            temp = curr_state[backIndex[0], backIndex[1]];
-                            curr_state[backIndex[0], backIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                            curr_state[emptyCell[0], emptyCell[1]] = temp;
-                            action = () => blocks[backIndex[0], backIndex[1]].PerformClick();
-                            blocks[backIndex[0], backIndex[1]].Invoke(action);
-                            blocks[emptyCell[0], emptyCell[1]] = blocks[backIndex[0], backIndex[1]];
-                            blocks[backIndex[0], backIndex[1]] = null;
-                            
-                            emptyCell = backIndex;
-                        }
-                        
-                    }
-                }
-
-
-                if (grid.OutOfBound(currIndex))
-                    continue;
-
-                isCorrectSide_prev = IsCorrectSide(int.Parse(blocks[currIndex[0], currIndex[1]].Text), curr_state);
-
-                temp = curr_state[currIndex[0], currIndex[1]];
-                curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                curr_state[emptyCell[0], emptyCell[1]] = temp;
-
-
-                curr_state_string = "";
-
-                foreach (int x in curr_state)
-                    curr_state_string += x + " ";
-
-                if (visited.Contains(curr_state_string) || locked.Contains(int.Parse(blocks[currIndex[0], currIndex[1]].Text)))
-                {
-                    temp = curr_state[currIndex[0], currIndex[1]];
-                    curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                    curr_state[emptyCell[0], emptyCell[1]] = temp;
-                    continue;
-                }
-                visited.Add(curr_state_string);
-
-                if (isCorrectSide_prev && !IsCorrectSide(int.Parse(blocks[currIndex[0], currIndex[1]].Text), curr_state))
-                {
-                    temp = curr_state[currIndex[0], currIndex[1]];
-                    curr_state[currIndex[0], currIndex[1]] = curr_state[emptyCell[0], emptyCell[1]];
-                    curr_state[emptyCell[0], emptyCell[1]] = temp;
-                    continue;
-                }
-
-                if (lockBlock(int.Parse(blocks[currIndex[0], currIndex[1]].Text), curr_state_string, ref locked))
-                {
-                    st.Clear();
-                    back.Clear();
-                    visited.Clear();
-                }
-
-
-                action = () => blocks[currIndex[0], currIndex[1]].PerformClick();
-                blocks[currIndex[0], currIndex[1]].Invoke(action);
-                blocks[emptyCell[0], emptyCell[1]] = blocks[currIndex[0], currIndex[1]];
-                blocks[currIndex[0], currIndex[1]] = null;
-
-                //now emptyCell = currIndex 
-                //currIndex = emptycell because 2 buttons are swapped
-                var temp2 = currIndex;
-                currIndex = emptyCell;
-                emptyCell = temp2;
-
-                Console.WriteLine(stage);
-
-                foreach (int[] dir in dirs)
-                    if (!grid.OutOfBound(new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }))
-                        st.Push(new KeyValuePair<int, int[]>(stage + 1, new int[] { emptyCell[0] + dir[0], emptyCell[1] + dir[1] }));
-
-
-                back.Push(new KeyValuePair<int, int[]>(stage, currIndex));
-
-                if (grid.Win())
-                    return;
-            }
-
-        }
-
-        //
-        private bool IsCorrectSide(int n, int[,] curr_state)
-        {
-            //put 1 2 5 6  9 13 to the left side
-            //put 3 4 7 8 to the right side
-            switch (n)
-            {
-                case 1: case 2: case 5: case 6:
-                    for (int i = 0; i < curr_state.GetLength(0); i++)
-                        for (int j = 0; j < curr_state.GetLength(1) / 2; j++)
-                            if (curr_state[i, j] == n)
-                                return true;
-                    break;
-                case 3: case 4: case 7: case 8:
-                    for (int i = 0; i < curr_state.GetLength(0); i++)
-                        for (int j = curr_state.GetLength(1) / 2; j < curr_state.GetLength(1); j++)
-                            if (curr_state[i, j] == n)
-                                return true;
-                    break;
-                default:
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool lockBlock(int n, string curr_state_string, ref HashSet<int> locked)
-        {
-            if (locked.Contains(n))
-                return false;
-
-            bool blockLocked = false;
-
-            int[] curr_state = new int[17];
-            int i;
-
-            for (i = 0; i < curr_state.Length; i++)
-                curr_state[i] = 0;
-
-            i = 1;
-            foreach (char c in curr_state_string)
-            {
-                if (c == ' ')
-                    i++;
-                else
-                {
-                    curr_state[i] *= 10;
-                    curr_state[i] += c - '0';
-                }
-
-
-            }
-
-            switch (n)
-            {
-                case 1:case 2:
-                    if (curr_state[1] == 1 && curr_state[2] == 2)
-                    {
-                        blockLocked = true;
-                        locked.Add(1);
-                        locked.Add(2);
-                    }
-                    break;
-                case 3:case 4:
-                    if (curr_state[3] == 3 && curr_state[4] == 4)
-                    {
-                        blockLocked = true;
-                        locked.Add(3);
-                        locked.Add(4);
-                    }
-                    break;
-                case 5:case 6:
-                
-                    if (curr_state[5] == 5 && curr_state[6] == 6 && locked.Contains(1))
-                    {
-                        blockLocked = true;
-                        locked.Add(5);
-                        locked.Add(6);
-                    }
-                    break;
-                case 7:case 8:
-                    if (curr_state[7] == 7 && curr_state[8] == 8 && locked.Contains(3))
-                    {
-                        blockLocked = true;
-                        locked.Add(7);
-                        locked.Add(8);
-                    }
-                    break;
-                case 9: case 13:
-                    if (curr_state[9] == 9 && curr_state[13] == 13 && locked.Contains(5))
-                    {
-                        blockLocked = true;
-                        locked.Add(9);
-                        locked.Add(13);
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            if (blockLocked)
-                Console.Write(n);
-            return blockLocked;
+            else //stop AI
+                AI_is_working = false;
         }
 
         private void restart_btn_Click(object sender, EventArgs e)
         {
+            //reset timer
             time_lbl.Text = "00:00:00";
+            //stop timer
             timer1.Stop();
+
+            //if the game started, stop it
             if (!freezeGame)
                 start_btn.PerformClick();
 
+            //re-generate the game
             InitGame();
         }
 
+        private void backgroundWorkerAI_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //if the grid is not shuffled, stop it 
+            if (grid.Win())
+            {
+                MessageBox.Show("Win");
+                return;
+            }
+
+            //add a timer
+            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
+            timer.Start();
+
+            //start AI
+            AI ai = new AI();
+            Stack<KeyValuePair<int, int[]>> AiMoves = ai.DFS2(ref grid, ref panel1);
+            CustomMsgBox customMsgBox = new CustomMsgBox(AiMoves);
+            var result = customMsgBox.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                if (customMsgBox.Result == "beginner")
+                {
+                    Button[,] blocks = new Button[grid.isEmpty.GetLength(0), grid.isEmpty.GetLength(1)];
+                    //init blocks based on the panel (GUI)
+                    int[] emptyCell = new int[2];
+
+                    for (int i = 0; i < 4; i++)
+                        for (int j = 0; j < 4; j++)
+                            blocks[i, j] = null;
+
+                    foreach (Button control in panel1.Controls)
+                    {
+                        int[] index = grid.LocationToIndex(control.Location);
+                        blocks[index[0], index[1]] = control;
+                    }
+
+                    //find  the empty cell
+                    for (int i = 0; i < blocks.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < blocks.GetLength(1); j++)
+                            if (blocks[i, j] == null)
+                            {
+                                emptyCell = new int[] { i, j };
+                                break;
+                            }
+                    }
+
+                    Stack<KeyValuePair<int, int[]>> right_move_reversed = new Stack<KeyValuePair<int, int[]>>();
+                    while (AiMoves.Count > 0)
+                        right_move_reversed.Push(AiMoves.Pop());
+
+                    //start to move buttons (based on the right_move)
+                    foreach (var x in right_move_reversed)
+                    {
+                        //move block (in the GUI)
+                        blocks[x.Value[0], x.Value[1]].PerformClick();
+                        //move block (in the 2d array)
+                        blocks[emptyCell[0], emptyCell[1]] = blocks[x.Value[0], x.Value[1]];
+                        blocks[x.Value[0], x.Value[1]] = null;
+
+                        //update empty cell
+                        emptyCell = x.Value;
+                    }
+                }
+                else if (customMsgBox.Result == "advanced")
+                {
+                    Console.WriteLine("test passed");
+                }
+            }
+
+            //stop timer
+            timer.Stop();
+            AI_is_working = false;
+
+            //update time
+            TimeSpan timeTaken = timer.Elapsed;
+            Action action = () => time_lbl.Text = string.Format("{0}:{1}:{2}", NumberToTime(timeTaken.Hours), NumberToTime(timeTaken.Minutes), NumberToTime(timeTaken.Seconds));
+            time_lbl.Invoke(action);
+
+            //if win, add to the records list
+            if (grid.Win())
+            {
+                MessageBox.Show("Solved");
+                refreshList();
+                //update datagrid
+                DataGridViewComboBoxColumn theColumn = (DataGridViewComboBoxColumn)dataGridView1.Columns[1];
+                action = () => dataGridView1.Rows.Add(time_lbl.Text, theColumn.Items[1]);
+                dataGridView1.Invoke(action);
+                updateFile();
+            }
+        }
+
+        private void refreshListToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            refreshList();
+        }
         private void DeleteBtn_Click(object sender, EventArgs e)
         {
             //clear rows of selected cells
@@ -591,35 +367,161 @@ namespace _15_Puzzle
                 //if cell it's the last row (means that is an uncommitted new raw, so cannot be deleted)
                 if (cell.RowIndex == dataGridView1.Rows.Count - 1)
                     continue;
-                //delete row
-                dataGridView1.Rows.RemoveAt(cell.RowIndex);
+
+                //double check with the user
+                DialogResult result = MessageBox.Show("Are you sure to delete this row '" + cell.Value.ToString() + " (" + dataGridView1.Rows[cell.RowIndex].Cells[1].Value.ToString() + ")'", "Message", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    dataGridView1.Rows.RemoveAt(cell.RowIndex);//delete row
+                    updateFile();
+                }
             }
         }
 
         private void clearListBtn_Click(object sender, EventArgs e)
         {
-            //clear list
-            dataGridView1.Rows.Clear();
+            //double check with the user
+            DialogResult result = MessageBox.Show("Are you sure to clear the list", "Message", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+            if (result == DialogResult.Yes)
+            {
+                //clear list
+                dataGridView1.Rows.Clear();
+                updateFile();
+            }
+
         }
 
-        private void backgroundWorkerAI_DoWork(object sender, DoWorkEventArgs e)
+        private void refreshList()
         {
-            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
-            timer.Start();
+            Action action = () => dataGridView1.Rows.Clear();
+            dataGridView1.Invoke(action);
 
+            //refresh the list
+            DataGridViewComboBoxColumn theColumn = (DataGridViewComboBoxColumn)dataGridView1.Columns[1];
+            FileStream f2 = new FileStream("records.txt", FileMode.OpenOrCreate);
+            StreamReader s2 = new StreamReader(f2);
+            while (!s2.EndOfStream)
+            {
+                action = () => dataGridView1.Rows.Add(s2.ReadLine(), theColumn.Items[int.Parse(s2.ReadLine())]);
+                dataGridView1.Invoke(action);
+            }
+            s2.Close();
+            f2.Close();
+        }
+
+        private void updateFile()
+        {
+            FileStream f1 = new FileStream("records.txt", FileMode.Create);
+            StreamWriter s1 = new StreamWriter(f1);
+            foreach(DataGridViewRow x in dataGridView1.Rows)
+            {
+                if (x.Cells[0].Value is null)
+                    continue;
+
+                s1.WriteLine(x.Cells[0].Value);
+                if (x.Cells[1].Value.ToString() == "Solved by user")
+                    s1.WriteLine("0");
+                else
+                    s1.WriteLine("1");
+            }
+            s1.Close();
+            f1.Close();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            //add data to datagridview
+            refreshList();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            //if the grid is not shuffled, stop it 
             if (grid.Win())
             {
                 MessageBox.Show("Win");
                 return;
             }
 
-            dfs2();
+            //add a timer
+            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
+            timer.Start();
 
+            //start AI
+            AI ai = new AI();
+            Stack<KeyValuePair<int, int[]>> AiMoves = ai.DFS2(ref grid, ref panel1);
+            CustomMsgBox customMsgBox = new CustomMsgBox(AiMoves);
+            var result = customMsgBox.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                if (customMsgBox.Result == "beginner")
+                {
+                    Button[,] blocks = new Button[grid.isEmpty.GetLength(0), grid.isEmpty.GetLength(1)];
+                    //init blocks based on the panel (GUI)
+                    int[] emptyCell = new int[2];
+
+                    for (int i = 0; i < 4; i++)
+                        for (int j = 0; j < 4; j++)
+                            blocks[i, j] = null;
+
+                    foreach (Button control in panel1.Controls)
+                    {
+                        int[] index = grid.LocationToIndex(control.Location);
+                        blocks[index[0], index[1]] = control;
+                    }
+
+                    //find  the empty cell
+                    for (int i = 0; i < blocks.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < blocks.GetLength(1); j++)
+                            if (blocks[i, j] == null)
+                            {
+                                emptyCell = new int[] { i, j };
+                                break;
+                            }
+                    }
+
+                    Stack<KeyValuePair<int, int[]>> right_move_reversed = new Stack<KeyValuePair<int, int[]>>();
+                    while (AiMoves.Count > 0)
+                        right_move_reversed.Push(AiMoves.Pop());
+
+                    //start to move buttons (based on the right_move)
+                    foreach (var x in right_move_reversed)
+                    {
+                        //move block (in the GUI)
+                        blocks[x.Value[0], x.Value[1]].PerformClick();
+                        //move block (in the 2d array)
+                        blocks[emptyCell[0], emptyCell[1]] = blocks[x.Value[0], x.Value[1]];
+                        blocks[x.Value[0], x.Value[1]] = null;
+
+                        //update empty cell
+                        emptyCell = x.Value;
+                    }
+                }
+                else if (customMsgBox.Result == "advanced")
+                {
+                    Console.WriteLine("test passed");
+                }
+            }
+
+            //stop timer
             timer.Stop();
-            AI = false;
+            AI_is_working = false;
+
+            //update time
             TimeSpan timeTaken = timer.Elapsed;
-            Action action = () => time_lbl.Text = string.Format("{0}:{1}:{2}", NumberToTime(timeTaken.Hours), NumberToTime(timeTaken.Minutes), NumberToTime(timeTaken.Seconds));
-            time_lbl.Invoke(action);
+            time_lbl.Text = string.Format("{0}:{1}:{2}", NumberToTime(timeTaken.Hours), NumberToTime(timeTaken.Minutes), NumberToTime(timeTaken.Seconds));
+
+            //if win, add to the records list
+            if (grid.Win())
+            {
+                MessageBox.Show("Solved");
+                refreshList();
+                //update datagrid
+                DataGridViewComboBoxColumn theColumn = (DataGridViewComboBoxColumn)dataGridView1.Columns[1];
+                dataGridView1.Rows.Add(time_lbl.Text, theColumn.Items[1]);
+                updateFile();
+            }
         }
     }
 }

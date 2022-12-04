@@ -41,12 +41,14 @@ namespace _15_Puzzle
             this.start_btn = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.ListMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.refreshListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DeleteBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.clearListBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.time = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.status = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.backgroundWorkerAI = new System.ComponentModel.BackgroundWorker();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.panelBorder)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.title_container)).BeginInit();
             this.title_container.SuspendLayout();
@@ -162,10 +164,18 @@ namespace _15_Puzzle
             // ListMenu
             // 
             this.ListMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.refreshListToolStripMenuItem,
             this.DeleteBtn,
             this.clearListBtn});
             this.ListMenu.Name = "ListMenu";
-            this.ListMenu.Size = new System.Drawing.Size(177, 48);
+            this.ListMenu.Size = new System.Drawing.Size(177, 70);
+            // 
+            // refreshListToolStripMenuItem
+            // 
+            this.refreshListToolStripMenuItem.Name = "refreshListToolStripMenuItem";
+            this.refreshListToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.refreshListToolStripMenuItem.Text = "Refresh List";
+            this.refreshListToolStripMenuItem.Click += new System.EventHandler(this.refreshListToolStripMenuItem_Click);
             // 
             // DeleteBtn
             // 
@@ -200,16 +210,19 @@ namespace _15_Puzzle
             // 
             // time
             // 
-            this.time.FillWeight = 98.47716F;
+            this.time.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.time.FillWeight = 120F;
             this.time.HeaderText = "time";
             this.time.Name = "time";
+            this.time.Width = 51;
             // 
             // status
             // 
+            this.status.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
             this.status.DisplayStyle = System.Windows.Forms.DataGridViewComboBoxDisplayStyle.ComboBox;
             this.status.FillWeight = 101.5228F;
             this.status.HeaderText = "Status";
-            this.status.MinimumWidth = 100;
+            this.status.MinimumWidth = 10;
             this.status.Name = "status";
             this.status.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.status.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
@@ -218,11 +231,22 @@ namespace _15_Puzzle
             // 
             this.backgroundWorkerAI.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerAI_DoWork);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(591, 393);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 9;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(706, 532);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.start_btn);
             this.Controls.Add(this.AI_btn);
@@ -231,8 +255,11 @@ namespace _15_Puzzle
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.panelBorder);
             this.Controls.Add(this.title_container);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.panelBorder)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.title_container)).EndInit();
             this.title_container.ResumeLayout(false);
@@ -259,10 +286,12 @@ namespace _15_Puzzle
         private System.Windows.Forms.ContextMenuStrip ListMenu;
         private System.Windows.Forms.ToolStripMenuItem DeleteBtn;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn time;
-        private System.Windows.Forms.DataGridViewComboBoxColumn status;
         private System.Windows.Forms.ToolStripMenuItem clearListBtn;
         private System.ComponentModel.BackgroundWorker backgroundWorkerAI;
+        private System.Windows.Forms.ToolStripMenuItem refreshListToolStripMenuItem;
+        private System.Windows.Forms.DataGridViewTextBoxColumn time;
+        private System.Windows.Forms.DataGridViewComboBoxColumn status;
+        private System.Windows.Forms.Button button1;
     }
 }
 
