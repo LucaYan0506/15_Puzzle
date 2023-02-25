@@ -6,7 +6,7 @@ Download the game and try to beat me!
 ![image](https://user-images.githubusercontent.com/83918638/221365559-3515beaf-c4e9-4045-a3b2-4d97a292125e.png)
 
 ## How to download the game
-Click [here](https://github.com/LucaYan0506/15_Puzzle/releases/download/v1.0.0/installer.exe) to download the file  
+Click [here](https://github.com/LucaYan0506/15_Puzzle/releases/download/v1.0.1/Installer.exe) to download the file  
 
 #### Chrome
 If you are using Google Chrome, it may block download.   
